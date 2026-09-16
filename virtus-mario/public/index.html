@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtus Consultoria | Relatório de Inadimplência</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<script>
+  if (sessionStorage.getItem('virtus_logado') !== 'true') {
+    window.location.href = 'login.html';
+  }
+</script>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <div class="sidebar">
+    <div class="logo">
+      <img src="img/logo-virtus.png" alt="Virtus Consultoria" style="height:28px;width:auto;">
+    </div>
+
+    <div class="ai-card">
+      <div class="title">Agente de Cobrança <span class="badge">NOVO</span></div>
+      <div class="desc">Uma IA que cobra e negocia por você.</div>
+      <div class="link">Saiba mais →</div>
+    </div>
+
+    <div class="nav-item active" data-page="relatorios">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg>
+      Relatórios
+    </div>
+
+    <div class="nav-label">GESTÃO</div>
+    <div class="nav-item" data-page="clientes">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="19" cy="8" r="2.5"/></svg>
+      Clientes
+    </div>
+    <div class="nav-item" data-page="titulos">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      Títulos
+    </div>
+
+    <div class="nav-label">COBRANÇA</div>
+    <div class="nav-item" data-page="negativacao">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>
+      Negativação
+    </div>
+    <div class="nav-item" data-page="protestos">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6M9 16h6M9 8h1"/><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+      Protestos
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="org-label">Virtus Consultoria</div>
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/></svg>Sua conta</div>
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8z"/></svg>Suporte</div>
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Sair</div>
+    </div>
+  </div>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+
+    <!-- ================= PÁGINA: RELATÓRIOS ================= -->
+    <div class="page active" id="page-relatorios">
+      <div class="top-tabs">
+        <div class="top-tab active">📊 Relatório de Inadimplência</div>
+        <div class="top-tab">💬 Relatório de Mensagens</div>
+      </div>
+
+      <div class="page-header">
+        <div>
+          <div class="page-title">Relatório de Inadimplência <span class="info">ⓘ</span></div>
+          <div class="page-sub">Análise dos recebíveis — dados sincronizados do Conta Azul</div>
+        </div>
+        <button class="btn btn-outline-teal">💬 Assistente Virtus</button>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-label">📅 Período</div>
+        <div class="chip">30 dias</div>
+        <div class="chip">90 dias</div>
+        <div class="chip">Este mês</div>
+        <div class="chip">Este ano</div>
+        <div class="chip active">Último ano</div>
+        <select class="search-input" id="centroCustoSelect" style="max-width:220px;margin-left:8px;">
+          <option value="">Centro de Custo: Todos</option>
+        </select>
+        <div class="date-range" style="gap:6px;">
+          📅
+          <input type="date" id="dataDeInput" style="border:none;background:transparent;font-size:13px;color:var(--text-muted);font-family:inherit;">
+          →
+          <input type="date" id="dataAteInput" style="border:none;background:transparent;font-size:13px;color:var(--text-muted);font-family:inherit;">
+        </div>
+        <button class="btn btn-white" id="btnLimparPeriodo" style="margin-left:6px;">Limpar</button>
+      </div>
+
+      <div class="section-title">Saúde do Portfólio</div>
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon blue">%</div>Taxa de Inadimplência</div>
+          <div class="kpi-value" id="kpi-taxa">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon red">$</div>Total Vencido</div>
+          <div class="kpi-value red" id="kpi-vencido">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon gray">👥</div>Clientes Inadimplentes</div>
+          <div class="kpi-value" id="kpi-clientes">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon gray">⏱</div>Prazo Médio de Atraso</div>
+          <div class="kpi-value" id="kpi-prazo">–</div>
+        </div>
+      </div>
+
+      <div class="reduce-hint">↓ Reduza esse índice</div>
+
+      <div class="cta-banner">
+        <div>
+          <div class="cta-title"><span class="badge-new">NOVO</span>A Virtus avalia o risco e, se for o caso, a gente te protege.</div>
+          <div class="cta-desc">A gente analisa o risco do seu cliente e, quando faz sentido, protege a sua venda. Você ganhou 30 dias grátis.</div>
+        </div>
+        <button class="btn">→ Avaliar risco grátis</button>
+      </div>
+
+      <div class="section-title">Tendência da Inadimplência</div>
+      <div class="charts-row">
+        <div class="card">
+          <h3>Evolução dos Recebíveis</h3>
+          <div class="chart-wrap"><canvas id="chartEvolucao"></canvas></div>
+          <div class="insight-box">Pico de inadimplência em <b>Ago/26</b> com taxa de <span class="pct">26,96%</span> (+246,53% acima da média)</div>
+        </div>
+        <div class="card">
+          <h3>Valores Acumulados</h3>
+          <div class="chart-wrap" style="height:190px;"><canvas id="chartDonut"></canvas></div>
+          <div class="legend-list" id="donutLegend"></div>
+        </div>
+      </div>
+
+      <div class="section-title">Performance das Cobranças</div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><h3 style="margin:0;">Saldo por faixa de atraso</h3><a href="#" onclick="return false;">Ver Títulos →</a></div>
+          <div class="chart-wrap" style="height:230px;"><canvas id="chartFaixa"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3 style="margin:0;">Pagamento após o vencimento</h3><a href="#" onclick="return false;">Ver Títulos →</a></div>
+          <div class="chart-wrap" style="height:230px;"><canvas id="chartPagamento"></canvas></div>
+        </div>
+      </div>
+
+      <div class="section-title" id="secTituloCentroCusto">Centro de Custos (Obras)</div>
+      <div class="card" style="margin-bottom:26px;">
+        <table>
+          <colgroup>
+            <col style="width:70%;">
+            <col style="width:30%;">
+          </colgroup>
+          <thead><tr><th id="thCentroCustoRelatorio">Obra / Centro de Custo</th><th>Valor Total</th></tr></thead>
+          <tbody id="centrosCustoBody"></tbody>
+        </table>
+      </div>
+
+      <div class="section-title">Maiores Devedores</div>
+      <div class="card">
+        <div class="card-head">
+          <h3 style="margin:0;">⚠️ Top 10 Maiores Devedores</h3>
+          <span style="font-size:13px;color:var(--text-muted);">Total: <b id="devedoresTotal" style="color:var(--text-dark);">–</b></span>
+        </div>
+        <table>
+          <colgroup>
+            <col style="width:5%;">
+            <col style="width:30%;">
+            <col style="width:25%;">
+            <col style="width:20%;">
+            <col style="width:10%;">
+            <col style="width:10%;">
+          </colgroup>
+          <thead><tr><th>#</th><th>Cliente</th><th id="thObraDevedores">Obra</th><th>Valor Vencido</th><th>Títulos</th><th>Atraso Máximo</th></tr></thead>
+          <tbody id="devedoresBody"></tbody>
+        </table>
+      </div>
+      <div class="mock-note">Dados de exemplo — conecte a API do Conta Azul em <code>fetchContaAzulData()</code> no script.</div>
+    </div>
+
+    <!-- ================= PÁGINA: CLIENTES ================= -->
+    <div class="page" id="page-clientes">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Clientes <span class="info">ⓘ</span></div>
+          <div class="page-sub">Cadastro e análise de risco dos sacados</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary">+ Novo Cliente</button>
+          <button class="btn btn-outline-teal">💬 Assistente Virtus</button>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon blue">👥</div>Total de Clientes</div>
+          <div class="kpi-value" id="cli-total">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon red">⚠</div>Inadimplentes</div>
+          <div class="kpi-value red" id="cli-inad">–</div>
+          <div class="kpi-note" id="cli-inad-note"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon gray">📄</div>Ticket Médio</div>
+          <div class="kpi-value" id="cli-ticket">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon green">$</div>Valor Recebido</div>
+          <div class="kpi-value green" id="cli-recebido">–</div>
+        </div>
+      </div>
+
+      <div class="cta-banner">
+        <div>
+          <div class="cta-title">🤖 Nos últimos 30 dias, você teve <span id="cli-inad-30">9 clientes inadimplentes</span>: R$ 7.750,86 em atraso</div>
+          <div class="cta-desc">Deixe uma IA cobrar isso por você pelo WhatsApp: 4 meses grátis, sem compromisso.</div>
+        </div>
+        <button class="btn">→ Deixar a IA cobrar</button>
+      </div>
+
+      <div class="section-title">👥 Carteira de Clientes</div>
+      <div class="search-bar">
+        <input class="search-input" id="cliSearchInput" placeholder="🔎 Buscar por nome ou CNPJ...">
+        <select class="search-input" id="cliStatusSelect">
+          <option value="">Status</option>
+          <option value="ok">Adimplente</option>
+          <option value="bad">Inadimplente</option>
+        </select>
+        <button class="btn btn-blue" id="btnBuscarClientes">🔎 Buscar</button>
+        <button class="btn btn-white" id="btnLimparClientes">🗑 Limpar</button>
+      </div>
+
+      <div class="card" style="padding:0;">
+        <table>
+          <thead><tr><th>Cliente</th><th>Status</th><th>Limite de Crédito</th><th>Contato</th></tr></thead>
+          <tbody id="clientesBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= PÁGINA: TÍTULOS ================= -->
+    <div class="page" id="page-titulos">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Títulos <span class="info">ⓘ</span></div>
+          <div class="page-sub">Listagem e gerenciamento de recebíveis</div>
+        </div>
+        <button class="btn btn-outline-teal">💬 Assistente Virtus</button>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-label">📅 Período:</div>
+        <div class="chip">Hoje</div><div class="chip">7 dias</div><div class="chip active">30 dias</div>
+        <div class="chip">90 dias</div><div class="chip">Este mês</div><div class="chip">Este ano</div>
+        <div class="date-range" style="gap:6px;">
+          📅
+          <input type="date" id="titDataDeInput" style="border:none;background:transparent;font-size:13px;color:var(--text-muted);font-family:inherit;">
+          →
+          <input type="date" id="titDataAteInput" style="border:none;background:transparent;font-size:13px;color:var(--text-muted);font-family:inherit;">
+        </div>
+        <button class="btn btn-white" id="btnLimparPeriodoTitulos" style="margin-left:4px;">Limpar período</button>
+      </div>
+
+      <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);">
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon green">✓</div>Total Recebido</div>
+          <div class="kpi-value green" id="tit-recebido">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon blue">⏰</div>Em Aberto</div>
+          <div class="kpi-value" id="tit-aberto">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon red">⚠</div>Vencido</div>
+          <div class="kpi-value red" id="tit-vencido">–</div>
+        </div>
+      </div>
+
+      <div class="cta-banner">
+        <div>
+          <div class="cta-title">🤖 Você tem <span id="tit-vencido-2">R$ 7.750,86</span> em títulos vencidos</div>
+          <div class="cta-desc">Deixe uma IA cobrar isso por você pelo WhatsApp — 4 meses grátis, sem compromisso.</div>
+        </div>
+        <button class="btn">→ Deixar a IA cobrar</button>
+      </div>
+
+      <div class="search-bar">
+        <input class="search-input" id="titSearchInput" placeholder="🔎 Buscar por documento, cliente ou CNPJ...">
+        <select class="search-input" id="titStatusSelect">
+          <option value="">Todos os Status</option>
+          <option value="Pago">Pago</option>
+          <option value="A Vencer">A Vencer</option>
+          <option value="Vencido">Vencido</option>
+          <option value="Parcial">Parcial</option>
+        </select>
+        <button class="btn btn-blue" id="btnBuscarTitulos">🔎 Buscar</button>
+        <button class="btn btn-white" id="btnLimparFiltrosTitulos">🗑 Limpar Filtros</button>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn btn-white">⬆ Importar Títulos</button>
+        <button class="btn btn-white">⬇ Exportar CSV</button>
+        <button class="btn btn-white">☰ Fila de Envio</button>
+        <button class="btn btn-primary">▷ Cobrar Atrasados</button>
+      </div>
+
+      <div class="card" style="padding:0;">
+        <table>
+          <colgroup>
+            <col style="width:18%;">
+            <col style="width:24%;">
+            <col style="width:18%;">
+            <col style="width:14%;">
+            <col style="width:12%;">
+            <col style="width:14%;">
+          </colgroup>
+          <thead><tr><th>Documento</th><th>Cliente</th><th id="thObraTitulos">Obra</th><th>Vencimento</th><th>Valor</th><th>Status</th></tr></thead>
+          <tbody id="titulosBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= PÁGINA: NEGATIVAÇÃO ================= -->
+    <div class="page" id="page-negativacao">
+      <div class="page-header">
+        <div class="page-title">Negativação - Adesão</div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <h3>📄 Contrato de Negativação</h3>
+        <p style="font-size:13.5px;color:var(--text-muted);">Após solicitação do contrato, você receberá um e-mail do sistema DocSales para assinatura digital. Em seguida o serviço de negativação será liberado on-line após aprovação da SERASA Experian.</p>
+      </div>
+
+      <div class="section-title">Dados da Empresa</div>
+      <div class="card" style="padding:0;margin-bottom:20px;">
+        <table class="info-table">
+          <tr><td>Empresa</td><td>VIRTUS CONSULTORIA LTDA</td></tr>
+          <tr><td>CNPJ/CPF</td><td>00.000.000/0001-00</td></tr>
+          <tr><td>Responsável</td><td>equipe</td></tr>
+          <tr><td>Endereço</td><td>—</td></tr>
+          <tr><td>E-mail</td><td>contato@virtusconsultoria.com.br</td></tr>
+          <tr><td>Vendedor</td><td>—</td></tr>
+        </table>
+      </div>
+
+      <div class="section-title">Plano de Negativação</div>
+      <div class="card" style="padding:0;margin-bottom:20px;">
+        <table class="info-table">
+          <tr><td>Plano</td><td>Bronze</td></tr>
+          <tr><td>Mensalidade</td><td>R$ 15,60</td></tr>
+          <tr><td>Negativações inclusas/mês</td><td>1</td></tr>
+          <tr><td>Valor por excedente</td><td>R$ 15,60</td></tr>
+          <tr><td>Taxa de sucesso (baixa)</td><td>1,99%</td></tr>
+        </table>
+      </div>
+
+      <div class="warn-box">⚠ Cadastro incompleto<br>Verifique os dados da conta. CNPJ, endereço, razão social e vendedor devem estar preenchidos para solicitar o contrato.</div>
+    </div>
+
+    <!-- ================= PÁGINA: PROTESTOS ================= -->
+    <div class="page" id="page-protestos">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Protestos <span class="info">ⓘ</span></div>
+          <div class="page-sub">Títulos elegíveis para protesto em cartório</div>
+        </div>
+        <button class="btn btn-outline-teal">💬 Assistente Virtus</button>
+      </div>
+
+      <div class="warn-box">⚠ Regra de elegibilidade: título vencido há mais de <b>90 dias</b> e ainda não protestado. Ajuste esse critério a qualquer momento.</div>
+
+      <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);">
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon red">⚠</div>Elegíveis para Protesto</div>
+          <div class="kpi-value red" id="prot-total">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon red">$</div>Valor Total Elegível</div>
+          <div class="kpi-value red" id="prot-valor">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><div class="kpi-icon gray">⏱</div>Atraso Médio</div>
+          <div class="kpi-value" id="prot-atraso">–</div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;margin-bottom:26px;">
+        <table>
+          <colgroup>
+            <col style="width:20%;">
+            <col style="width:22%;">
+            <col style="width:15%;">
+            <col style="width:15%;">
+            <col style="width:13%;">
+            <col style="width:15%;">
+          </colgroup>
+          <thead><tr><th>Documento</th><th>Cliente</th><th>Valor</th><th>Vencimento</th><th>Atraso</th><th>Ação</th></tr></thead>
+          <tbody id="protestosBody"></tbody>
+        </table>
+      </div>
+
+      <div class="section-title">Contrato de Protesto</div>
+      <div class="card" style="margin-bottom:20px;">
+        <h3>📄 Contrato de Protesto</h3>
+        <p style="font-size:13.5px;color:var(--text-muted);">Após solicitação do contrato, você receberá um e-mail do sistema DocSales para assinatura digital. Em seguida o serviço de protesto será liberado on-line após aprovação do IEPTB e registro no cartório competente.</p>
+      </div>
+
+      <div class="section-title">Dados da Empresa</div>
+      <div class="card" style="padding:0;margin-bottom:20px;">
+        <table class="info-table">
+          <tr><td>Empresa</td><td>VIRTUS CONSULTORIA LTDA</td></tr>
+          <tr><td>CNPJ/CPF</td><td>00.000.000/0001-00</td></tr>
+          <tr><td>Responsável</td><td>equipe</td></tr>
+          <tr><td>Endereço</td><td>—</td></tr>
+          <tr><td>E-mail</td><td>contato@virtusconsultoria.com.br</td></tr>
+          <tr><td>Vendedor</td><td>—</td></tr>
+        </table>
+      </div>
+
+      <div class="section-title">Plano de Protesto</div>
+      <div class="card" style="padding:0;margin-bottom:20px;">
+        <table class="info-table">
+          <tr><td>Plano</td><td>Bronze</td></tr>
+          <tr><td>Mensalidade</td><td>R$ 15,60</td></tr>
+          <tr><td>Protestos inclusos/mês</td><td>1</td></tr>
+          <tr><td>Valor por excedente</td><td>R$ 15,60</td></tr>
+          <tr><td>Taxa de sucesso (baixa)</td><td>1,99%</td></tr>
+        </table>
+      </div>
+
+      <div class="section-title">Dados Bancários</div>
+      <div class="card" style="margin-bottom:20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+          <div>
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Banco</label>
+            <input class="search-input" placeholder="Número do banco (ex: 001)">
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Agência</label>
+            <input class="search-input" placeholder="Número da agência">
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Conta Corrente</label>
+            <input class="search-input" placeholder="Número da conta corrente">
+          </div>
+        </div>
+      </div>
+
+      <div class="warn-box">⚠ Cadastro incompleto<br>Verifique os dados da conta. CNPJ, endereço, razão social e vendedor devem estar preenchidos para solicitar o contrato.</div>
+
+      <div style="text-align:right;margin-top:16px;margin-bottom:26px;">
+        <button class="btn btn-primary" disabled style="opacity:.5;cursor:not-allowed;">Solicitar contrato</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
