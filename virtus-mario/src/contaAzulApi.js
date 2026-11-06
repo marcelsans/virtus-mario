@@ -3,13 +3,60 @@ const { getValidAccessToken } = require('./contaAzulAuth');
 
 const API_BASE = 'https://api-v2.contaazul.com';
 
+// Limite da Conta Azul: 10 requisições por segundo por conta conectada.
+// Espaçamos as chamadas em ~130ms (cerca de 7 por segundo) pra ficar folgado.
+const INTERVALO_MS = 130;
+const MAX_TENTATIVAS = 6;
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Fila por cliente: garante um intervalo mínimo entre o INÍCIO de cada chamada,
+// mesmo quando várias buscas rodam em paralelo (Promise.all).
+const filas = {};
+async function esperarSuaVez(clienteId) {
+  const anterior = filas[clienteId] || Promise.resolve();
+  let liberar;
+  filas[clienteId] = new Promise(resolve => { liberar = resolve; });
+  await anterior;
+  setTimeout(liberar, INTERVALO_MS);
+}
+
+// Se duas chamadas pedirem o token ao mesmo tempo, só uma renova de verdade
+// (a Conta Azul troca o refresh_token a cada uso, então renovar em dobro dá erro).
+const tokensEmAndamento = {};
+function obterToken(clienteId) {
+  if (!tokensEmAndamento[clienteId]) {
+    tokensEmAndamento[clienteId] = getValidAccessToken(clienteId)
+      .finally(() => { delete tokensEmAndamento[clienteId]; });
+  }
+  return tokensEmAndamento[clienteId];
+}
+
+function foiLimiteDeRequisicoes(e) {
+  return e.response?.status === 429 || e.response?.data?.error === 'too_many_requests';
+}
+
 async function authedGet(clienteId, url, params = {}) {
-  const token = await getValidAccessToken(clienteId);
-  const resp = await axios.get(`${API_BASE}${url}`, {
-    params,
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return resp.data;
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+    await esperarSuaVez(clienteId);
+    try {
+      const token = await obterToken(clienteId);
+      const resp = await axios.get(`${API_BASE}${url}`, {
+        params,
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return resp.data;
+    } catch (e) {
+      if (foiLimiteDeRequisicoes(e) && tentativa < MAX_TENTATIVAS) {
+        const retryAfter = Number(e.response?.headers?.['retry-after']);
+        const espera = retryAfter > 0 ? retryAfter * 1000 : 1000 * tentativa;
+        console.warn(`Limite de requisições da Conta Azul. Tentativa ${tentativa}/${MAX_TENTATIVAS}, aguardando ${espera}ms...`);
+        await sleep(espera);
+        continue;
+      }
+      throw e;
+    }
+  }
 }
 
 /**
